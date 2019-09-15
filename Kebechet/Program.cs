@@ -11,16 +11,13 @@ namespace Kebechet
     {
         static string trend;
         static long lastTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        static WebClient webClient = new WebClient();
         static TelegramBotClient botClient = new TelegramBotClient("");
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Kebechet Bot Iniciado " + UnixTimeStampToDateTime(lastTimestamp) + " (UTC)\n\n");
+            Console.WriteLine("Kebechet Bot Iniciado " + UnixTimeStampToDateTime(lastTimestamp) + " (UTC)\n");
             botClient.OnMessage += botClient_OnMessage;
-            botClient.StartReceiving();
-            Console.WriteLine(botClient.MessageOffset);
-           
+            botClient.StartReceiving();           
 
             while (true)
             {
@@ -64,11 +61,13 @@ namespace Kebechet
 
         static dynamic buscarInformacoes()
         {
+            WebClient webClient = new WebClient();
+
             dynamic anubisAPIdata = JsonConvert.DeserializeObject(webClient.DownloadString("https://anubis.website/api/anubis/trend/"));
 
             if (anubisAPIdata.result == "success")
             {
-                Console.WriteLine("Dados de API obtidos");
+                Console.Write(".");
             }
             else
             {
@@ -101,9 +100,26 @@ namespace Kebechet
 
             StringBuilder mensagem = new StringBuilder();
 
-            if (reversao) { mensagem.AppendLine("*Reversão de Tendência*"); mensagem.AppendLine(); }
+            DateTimeOffset ultimaReversao = new DateTime();
+            DateTimeOffset ultimaTrend = new DateTime();
 
-            mensagem.AppendLine("Horário: " + UnixTimeStampToDateTime(Convert.ToInt64(anubisAPIdata.data[0].timestamp)) + "(UTC)");
+            for (int i = 0; anubisAPIdata.data[0].trend == anubisAPIdata.data[i].trend; i++)
+            {
+                ultimaReversao = UnixTimeStampToDateTime(Convert.ToInt64(anubisAPIdata.data[i].timestamp));
+            }
+
+            ultimaTrend = UnixTimeStampToDateTime(Convert.ToInt64(anubisAPIdata.data[0].timestamp));
+
+            if (reversao)
+            {
+                mensagem.AppendLine("*Reversão de Tendência*"); mensagem.AppendLine();
+                mensagem.AppendLine("Horário: " + ultimaTrend.Date.ToShortDateString() + ", " + ultimaTrend.Hour.ToString().PadLeft(2, '0') + ':' + ultimaTrend.Minute.ToString().PadLeft(2, '0') + " (UTC)" + " (UTC)");
+            }
+            else
+            {
+                mensagem.AppendLine("Última reversão: " + ultimaReversao.Date.ToShortDateString() + ", " + ultimaReversao.Hour.ToString().PadLeft(2, '0') + ':' + ultimaReversao.Minute.ToString().PadLeft(2, '0') + " (UTC)");
+            }
+
             mensagem.AppendLine("Par: BTC/USD");
             mensagem.AppendLine("Preço: " + anubisAPIdata.data[0].price);
             mensagem.AppendLine();
