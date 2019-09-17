@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading;
@@ -18,7 +19,7 @@ namespace Kebechet
         {
             Console.WriteLine("Kebechet Bot Iniciado " + UnixTimeStampToDateTime(lastTimestamp) + " (UTC)\n");
             botClient.OnMessage += botClient_OnMessage;
-            botClient.StartReceiving();           
+            botClient.StartReceiving();
 
             while (true)
             {
@@ -31,49 +32,44 @@ namespace Kebechet
         {
             if (e.Message.Type == Telegram.Bot.Types.Enums.MessageType.Text)
             {
-                switch (e.Message.Text)
+                if (e.Message.Text.StartsWith("/tendencia"))
                 {
-                    case "/tendencia":
-                        {
-                            Console.WriteLine(e.Message.Text);
-                            if (e.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
-                            {
-                                telegramEnviarMensagem(e.Message.Chat.Id, gerarMensagemTendencia(buscarInformacoes(), false));
-                            }
-                            break;
-                        }
+                    Console.WriteLine(e.Message.Text);
+                    if (e.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
+                    {
+                        telegramEnviarMensagem(e.Message.Chat.Id, gerarMensagemTendencia(buscarInformacoes(), false), getChatNome(e.Message.Chat.Id));
+                    }
+                }
 
-                    case "/start":
-                        {
-                            Console.WriteLine(e.Message.Text);
-                            if (e.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
-                            {
-                                telegramEnviarMensagem(e.Message.Chat.Id, @"Use /tendencia para verificar a tendência de preços do Bitcoin. *Os dados podem não ser precisos*");
-                            }
-                            else
-                            {
-                                telegramEnviarMensagem(e.Message.Chat.Id, @"Use /tendencia *no privado* para verificar a tendência de preços do Bitcoin. *Os dados podem não ser precisos*");
-                            }
-                            break;
-                        }
+                if (e.Message.Text.StartsWith("/start"))
+                {
+                    Console.WriteLine(e.Message.Text);
+                    if (e.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
+                    {
+                        telegramEnviarMensagem(e.Message.Chat.Id, @"Use /tendencia para verificar a tendência de preços do Bitcoin. *Os dados podem não ser precisos*", getChatNome(e.Message.Chat.Id));
+                    }
+                    else
+                    {
+                        telegramEnviarMensagem(e.Message.Chat.Id, @"Use /tendencia *no privado* para verificar a tendência de preços do Bitcoin. *Os dados podem não ser precisos*", getChatNome(e.Message.Chat.Id));
+                    }
+                }
 
-                    case "/valor":
-                        {
-                            Console.WriteLine(e.Message.Text);
-                            WebClient getBitcoinPrice = new WebClient();
-                            StringBuilder mensagemPrice = new StringBuilder();
-                            dynamic ticker = JsonConvert.DeserializeObject(getBitcoinPrice.DownloadString("https://blockchain.info/ticker"));
-                            mensagemPrice.AppendLine("Hoje, " + DateTime.UtcNow.Date.ToShortDateString() + ", " + DateTime.UtcNow.Hour.ToString().PadLeft(2, '0') + ':' + DateTime.UtcNow.Minute.ToString().PadLeft(2, '0') + "(UTC)");
-                            mensagemPrice.AppendLine("*Um bitcoin* vale *R$ " + ticker.BRL.last + '*');
-                            mensagemPrice.AppendLine("*Um bitcoin* vale *U$ " + ticker.USD.last + '*');
-                            mensagemPrice.AppendLine("*1 real* vale só *BTC " + Math.Round(1 / Convert.ToDouble(ticker.BRL.last), 8).ToString("0" + '.' + "###############") + '*');
+                if (e.Message.Text.StartsWith("/valor"))
+                {
+                    Console.WriteLine(e.Message.Text);
+                    WebClient getBitcoinPrice = new WebClient();
+                    StringBuilder mensagemPrice = new StringBuilder();
+                    dynamic ticker = JsonConvert.DeserializeObject(getBitcoinPrice.DownloadString("https://blockchain.info/ticker"));
+                    mensagemPrice.AppendLine("Hoje, " + DateTime.UtcNow.Date.ToShortDateString() + ", " + DateTime.UtcNow.Hour.ToString().PadLeft(2, '0') + ':' + DateTime.UtcNow.Minute.ToString().PadLeft(2, '0') + "(UTC)");
+                    mensagemPrice.AppendLine("*Um bitcoin* vale *R$ " + ticker.BRL.last + '*');
+                    mensagemPrice.AppendLine("*Um bitcoin* vale *U$ " + ticker.USD.last + '*');
+                    mensagemPrice.AppendLine("*1 real* vale só *BTC " + Math.Round(1 / Convert.ToDouble(ticker.BRL.last), 8).ToString("0" + '.' + "###############") + '*');
 
-                            telegramEnviarMensagem(e.Message.Chat.Id, mensagemPrice.ToString());
-                            break;
-                        }
+                    telegramEnviarMensagem(e.Message.Chat.Id, mensagemPrice.ToString(), getChatNome(e.Message.Chat.Id));
                 }
             }
         }
+    
 
         static dynamic buscarInformacoes()
         {
@@ -103,7 +99,9 @@ namespace Kebechet
             {
                 Console.WriteLine("Reversão de tendência detectada");
 
-                telegramEnviarMensagem(-1001250570722, gerarMensagemTendencia(anubisAPIdata, true).ToString());
+                Telegram.Bot.Types.ChatId IDgrupoCafeESHA256 = 1001250570722;
+
+                telegramEnviarMensagem(IDgrupoCafeESHA256, gerarMensagemTendencia(anubisAPIdata, true).ToString(), getChatNome(IDgrupoCafeESHA256));
 
                 lastTimestamp = Convert.ToInt64(anubisAPIdata.data[0].timestamp);
             }
@@ -145,11 +143,35 @@ namespace Kebechet
             return mensagem.ToString();
         }
 
-        public static void telegramEnviarMensagem(long chatID, string mensagem)
+        public static void telegramEnviarMensagem(Telegram.Bot.Types.ChatId chatID, string mensagem, string log)
         {
-            Console.WriteLine("Enviando mensagem para " + botClient.GetChatAsync(chatID).Result.Title);
+            Console.WriteLine("\nEnviando mensagem para " + log + " (" + chatID + ')');
 
             botClient.SendTextMessageAsync(chatID, mensagem, Telegram.Bot.Types.Enums.ParseMode.Markdown);
+        }
+
+        static string getChatNome(Telegram.Bot.Types.ChatId chatID)
+        {
+            Telegram.Bot.Types.Chat chat = botClient.GetChatAsync(chatID).Result;
+
+            string nomeChat = null;
+
+            if (chat.Type == Telegram.Bot.Types.Enums.ChatType.Channel || chat.Type == Telegram.Bot.Types.Enums.ChatType.Group || chat.Type == Telegram.Bot.Types.Enums.ChatType.Supergroup && chat.Title.ToString().Length > 0)
+            {
+                nomeChat += chat.Title;
+            }
+            if (chat.Type == Telegram.Bot.Types.Enums.ChatType.Private && chat.FirstName.ToString().Length > 0)
+            {
+                if (!String.IsNullOrEmpty(nomeChat)) { nomeChat += ' '; }
+                nomeChat += chat.FirstName;
+            }
+            if (chat.Type == Telegram.Bot.Types.Enums.ChatType.Private && chat.LastName.ToString().Length > 0)
+            {
+                if (!String.IsNullOrEmpty(nomeChat)) { nomeChat += ' '; }
+                nomeChat += ' ' + chat.LastName;
+            }
+
+            return nomeChat;
         }
 
         public static DateTime UnixTimeStampToDateTime(long unixTimeStamp)
