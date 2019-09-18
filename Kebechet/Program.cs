@@ -167,24 +167,31 @@ namespace Kebechet
         }
 
         static string getChatNome(Telegram.Bot.Types.ChatId chatID)
-        {
-            Telegram.Bot.Types.Chat chat = botClient.GetChatAsync(chatID).Result;
-
+        {         
             string nomeChat = null;
 
-            if (chat.Type == Telegram.Bot.Types.Enums.ChatType.Channel || chat.Type == Telegram.Bot.Types.Enums.ChatType.Group || chat.Type == Telegram.Bot.Types.Enums.ChatType.Supergroup && chat.Title.ToString().Length > 0)
+            try
             {
-                nomeChat += chat.Title;
+                Telegram.Bot.Types.Chat chat = botClient.GetChatAsync(chatID).Result;
+
+                if (chat.Type == Telegram.Bot.Types.Enums.ChatType.Channel || chat.Type == Telegram.Bot.Types.Enums.ChatType.Group || chat.Type == Telegram.Bot.Types.Enums.ChatType.Supergroup && chat.Title.ToString().Length > 0)
+                {
+                    nomeChat += chat.Title;
+                }
+                if (chat.Type == Telegram.Bot.Types.Enums.ChatType.Private && chat.FirstName.ToString().Length > 0)
+                {
+                    if (!String.IsNullOrEmpty(nomeChat)) { nomeChat += ' '; }
+                    nomeChat += chat.FirstName;
+                }
+                if (chat.Type == Telegram.Bot.Types.Enums.ChatType.Private && chat.LastName.ToString().Length > 0)
+                {
+                    if (!String.IsNullOrEmpty(nomeChat)) { nomeChat += ' '; }
+                    nomeChat += chat.LastName;
+                }
             }
-            if (chat.Type == Telegram.Bot.Types.Enums.ChatType.Private && chat.FirstName.ToString().Length > 0)
+            catch
             {
-                if (!String.IsNullOrEmpty(nomeChat)) { nomeChat += ' '; }
-                nomeChat += chat.FirstName;
-            }
-            if (chat.Type == Telegram.Bot.Types.Enums.ChatType.Private && chat.LastName.ToString().Length > 0)
-            {
-                if (!String.IsNullOrEmpty(nomeChat)) { nomeChat += ' '; }
-                nomeChat += ' ' + chat.LastName;
+                nomeChat = "indefinido";
             }
 
             return nomeChat;
