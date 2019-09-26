@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -9,22 +10,24 @@ using Telegram.Bot;
 
 namespace Kebechet
 {
-    class Program
+    internal static class Program
     {
         static string trend;
         static long lastTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         static TelegramBotClient botClient = new TelegramBotClient("");
-        static dynamic anubisTrendAPIdata = buscarInformacoes();
+        static dynamic anubisTrendAPIdata;
 
         static void Main(string[] args)
         {
+            buscarInformacoes();
+
             Console.WriteLine("Kebechet Bot Iniciado " + UnixTimeStampToDateTime(lastTimestamp) + " (UTC)\n");
             botClient.OnMessage += botClient_OnMessage;
             botClient.StartReceiving();
 
             while (true)
             {
-                try { buscarInformacoes(); } catch { }
+                buscarInformacoes();
                 Thread.Sleep(30000);
             }
         }
@@ -33,16 +36,25 @@ namespace Kebechet
         {
             if (e.Message.Type == Telegram.Bot.Types.Enums.MessageType.Text)
             {
-                if (e.Message.Text.ToLower().StartsWith("/tendencia"))
+                if (e.Message.Text.StartsWith("/tendencia", StringComparison.OrdinalIgnoreCase))
                 {
                     Console.WriteLine("\n" + e.Message.Text);
-                   // if (e.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
+                    // if (e.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
                     {
                         telegramEnviarMensagem(e.Message.Chat.Id, gerarMensagemTendencia(anubisTrendAPIdata, false));
                     }
                 }
 
-                if (e.Message.Text.ToLower().StartsWith("/start"))
+                if (e.Message.Text.StartsWith("/sr", StringComparison.OrdinalIgnoreCase) || (e.Message.Text.StartsWith("/suportetendencia", StringComparison.OrdinalIgnoreCase)))
+                {
+                    Console.WriteLine("\n" + e.Message.Text);
+                    // if (e.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
+                    {
+                        telegramEnviarMensagem(e.Message.Chat.Id, gerarMensagemSuporteResistencia());
+                    }
+                }
+
+                if (e.Message.Text.StartsWith("/start", StringComparison.OrdinalIgnoreCase))
                 {
                     Console.WriteLine("\n" + e.Message.Text);
                     if (e.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
@@ -55,13 +67,14 @@ namespace Kebechet
                     }
                 }
 
-                if (e.Message.Text.ToLower().StartsWith("/valor"))
+                if (e.Message.Text.StartsWith("/valor", StringComparison.OrdinalIgnoreCase))
                 {
                     Console.WriteLine("\n" + e.Message.Text);
                     WebClient getBitcoinPrice = new WebClient();
                     StringBuilder mensagemPrice = new StringBuilder();
+                    DateTimeOffset agoraBrasilia = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time"));
                     dynamic ticker = JsonConvert.DeserializeObject(getBitcoinPrice.DownloadString("https://blockchain.info/ticker"));
-                    mensagemPrice.AppendLine("Hoje, " + DateTime.UtcNow.Date.ToShortDateString() + ", " + DateTime.UtcNow.Hour.ToString().PadLeft(2, '0') + ':' + DateTime.UtcNow.Minute.ToString().PadLeft(2, '0') + "(UTC)");
+                    mensagemPrice.AppendLine("Hoje, " + agoraBrasilia.Date.ToShortDateString() + ", " + agoraBrasilia.Hour.ToString().PadLeft(2, '0') + ':' + agoraBrasilia.Minute.ToString().PadLeft(2, '0') + " (GMT -3)");
                     mensagemPrice.AppendLine("*Um bitcoin* vale *R$ " + ticker.BRL.last + '*');
                     mensagemPrice.AppendLine("*Um bitcoin* vale *U$ " + ticker.USD.last + '*');
                     mensagemPrice.AppendLine("*1 real* vale só *BTC " + Math.Round(1 / Convert.ToDouble(ticker.BRL.last), 8).ToString("0" + '.' + "###############") + '*');
@@ -69,7 +82,7 @@ namespace Kebechet
                     telegramEnviarMensagem(e.Message.Chat.Id, mensagemPrice.ToString());
                 }
 
-                if (e.Message.Text.ToLower().StartsWith("/medoeganancia") | e.Message.Text.ToLower().StartsWith("/fg") | e.Message.Text.ToLower().StartsWith("/sentimento"))
+                if (e.Message.Text.StartsWith("/medoeganancia", StringComparison.OrdinalIgnoreCase) || (e.Message.Text.StartsWith("/fg", StringComparison.OrdinalIgnoreCase)) || (e.Message.Text.StartsWith("/sentimento", StringComparison.OrdinalIgnoreCase)))
                 {
                     Console.WriteLine("\n" + e.Message.Text);
                     telegramEnviarMensagem(e.Message.Chat.Id, "Medo e ganância do cryptomercado[⠀](https://alternative.me/crypto/fear-and-greed-index.png)");
@@ -77,7 +90,7 @@ namespace Kebechet
             }
         }
 
-        static dynamic buscarInformacoes()
+        static void buscarInformacoes()
         {
             WebClient webClient = new WebClient();
 
@@ -94,12 +107,12 @@ namespace Kebechet
 
             if (String.IsNullOrEmpty(trend)) { trend = anubisTrendAPIdata.data[0].trend; }
 
-            return anubisTrendAPIdata;
+            verificarReversao(anubisTrendAPIdata);
         }
 
-        static void verificarReversao()
+        static void verificarReversao(dynamic APIdata)
         {
-            if (Convert.ToInt64(anubisTrendAPIdata.data[0].timestamp) > lastTimestamp && anubisTrendAPIdata.data[0].trend != anubisTrendAPIdata.data[1].trend | anubisTrendAPIdata.data[0].trend == trend)
+            if (Convert.ToInt64(APIdata.data[0].timestamp) > lastTimestamp && APIdata.data[0].trend != APIdata.data[1].trend | APIdata.data[0].trend != trend)
             {
                 Console.WriteLine("Reversão de tendência detectada");
 
@@ -114,29 +127,31 @@ namespace Kebechet
         static string gerarMensagemTendencia(dynamic anubisAPIdata, bool reversao)
         {
             string tendenciaString = "ERRO";
-            if (anubisAPIdata.data[0].trend == "LONG") { tendenciaString = "Alta"; } else if (anubisAPIdata.data[0].trend == "SHORT") { tendenciaString = "Baixa"; } else if (anubisAPIdata.data[0].trend == "NOTHING") { tendenciaString = "Incerta"; }
+            if (anubisAPIdata.data[0].trend == "LONG") { tendenciaString = "🔺 Alta"; } else if (anubisAPIdata.data[0].trend == "SHORT") { tendenciaString = "🔻 Baixa"; } else if (anubisAPIdata.data[0].trend == "NOTHING") { tendenciaString = "Indefinida"; }
 
             StringBuilder mensagem = new StringBuilder();
+            mensagem.AppendLine("Tendência: *" + tendenciaString + "* (" + anubisAPIdata.data[0].trend + ")");
+            mensagem.AppendLine();
 
-            DateTimeOffset ultimaReversao = new DateTime();
-            DateTimeOffset ultimaTrend = new DateTime();
+            DateTimeOffset ultimaReversao = new DateTimeOffset();
+            DateTimeOffset ultimaTrend = new DateTimeOffset();
             string ultimareversaoTexto = null;
 
             int dadosAnubisQtd = ((JArray)anubisAPIdata["data"]).Count;
-            for (int i = 0; ((JArray)anubisAPIdata["data"]).Count > i && anubisAPIdata.data[0].trend == anubisAPIdata.data[i].trend; i++)
+            for (int i = 0; dadosAnubisQtd > i && anubisAPIdata.data[0].trend == anubisAPIdata.data[i].trend; i++)
             {
-                if ((i - 1) == ((JArray)anubisAPIdata["data"]).Count)
+                ultimareversaoTexto = null;
+                if (i + 1 == dadosAnubisQtd)
                 {
-                    ultimareversaoTexto = "Antes de ";
+                    ultimareversaoTexto = "Desde: Antes de ";
                 }
                 else
                 {
-                    ultimareversaoTexto = null;
+                    ultimareversaoTexto = "Desde: ";
                 }
 
                 ultimaReversao = UnixTimeStampToDateTime(Convert.ToInt64(anubisAPIdata.data[i].timestamp));
-                ultimareversaoTexto = "Última reversão: " + ultimaReversao.Date.ToShortDateString() + ", " + ultimaReversao.Hour.ToString().PadLeft(2, '0') + ':' + ultimaReversao.Minute.ToString().PadLeft(2, '0') + " (UTC)";
-
+                ultimareversaoTexto += ultimaReversao.Date.ToShortDateString() + ", " + ultimaReversao.Hour.ToString().PadLeft(2, '0') + ':' + ultimaReversao.Minute.ToString().PadLeft(2, '0') + " (UTC)";
             }
 
             ultimaTrend = UnixTimeStampToDateTime(Convert.ToInt64(anubisAPIdata.data[0].timestamp));
@@ -144,7 +159,7 @@ namespace Kebechet
             if (reversao)
             {
                 mensagem.AppendLine("*Reversão de Tendência*"); mensagem.AppendLine();
-                mensagem.AppendLine("Horário: " + ultimaTrend.Date.ToShortDateString() + ", " + ultimaTrend.Hour.ToString().PadLeft(2, '0') + ':' + ultimaTrend.Minute.ToString().PadLeft(2, '0') + " (UTC)");
+                mensagem.AppendLine(ultimaTrend.Date.ToShortDateString() + ", " + ultimaTrend.Hour.ToString().PadLeft(2, '0') + ':' + ultimaTrend.Minute.ToString().PadLeft(2, '0') + " (UTC)");
             }
             else
             {
@@ -153,8 +168,23 @@ namespace Kebechet
 
             mensagem.AppendLine("Par: BTC/USD");
             mensagem.AppendLine("Preço recente: " + anubisAPIdata.data[0].price);
-            mensagem.AppendLine();
-            mensagem.AppendLine("Tendência: *" + tendenciaString + "* (" + anubisAPIdata.data[0].trend + ")");
+
+            return mensagem.ToString();
+        }
+
+        static string gerarMensagemSuporteResistencia()
+        {
+            WebClient webClient = new WebClient();
+            dynamic APIsr = JsonConvert.DeserializeObject(webClient.DownloadString("https://anubis.website/api/anubis/sr/"));
+
+            DateTimeOffset ultimoDado = UnixTimeStampToDateTime(Convert.ToInt64(APIsr.data[0].timestamp));
+
+            StringBuilder mensagem = new StringBuilder();
+
+            mensagem.AppendLine(ultimoDado.Date.ToShortDateString() + ", " + ultimoDado.Hour.ToString().PadLeft(2, '0') + ':' + ultimoDado.Minute.ToString().PadLeft(2, '0') + " (UTC)");
+            mensagem.AppendLine("Par: *BTC/USD*");
+            mensagem.AppendLine("Suporte: *" + Math.Round(Convert.ToDouble(APIsr.data[0].s), 2) + '*');
+            mensagem.AppendLine("Resistência: *" + Math.Round(Convert.ToDouble(APIsr.data[0].r), 2) + '*');
 
             return mensagem.ToString();
         }
@@ -167,7 +197,7 @@ namespace Kebechet
         }
 
         static string getChatNome(Telegram.Bot.Types.ChatId chatID)
-        {         
+        {
             string nomeChat = null;
 
             try
@@ -178,12 +208,12 @@ namespace Kebechet
                 {
                     nomeChat += chat.Title;
                 }
-                if (chat.Type == Telegram.Bot.Types.Enums.ChatType.Private && chat.FirstName.ToString().Length > 0)
+                if (chat.Type == Telegram.Bot.Types.Enums.ChatType.Private && chat.FirstName.Length > 0)
                 {
                     if (!String.IsNullOrEmpty(nomeChat)) { nomeChat += ' '; }
                     nomeChat += chat.FirstName;
                 }
-                if (chat.Type == Telegram.Bot.Types.Enums.ChatType.Private && chat.LastName.ToString().Length > 0)
+                if (chat.Type == Telegram.Bot.Types.Enums.ChatType.Private && chat.LastName.Length > 0)
                 {
                     if (!String.IsNullOrEmpty(nomeChat)) { nomeChat += ' '; }
                     nomeChat += chat.LastName;
@@ -197,9 +227,9 @@ namespace Kebechet
             return nomeChat;
         }
 
-        public static DateTime UnixTimeStampToDateTime(long unixTimeStamp)
+        public static DateTimeOffset UnixTimeStampToDateTime(long unixTimeStamp)
         {
-            System.DateTime dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0);
+            System.DateTimeOffset dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0);
             dtDateTime = dtDateTime.AddMilliseconds(unixTimeStamp);
             return dtDateTime;
         }
