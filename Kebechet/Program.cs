@@ -72,9 +72,9 @@ namespace Kebechet
                     Console.WriteLine("\n" + e.Message.Text);
                     WebClient getBitcoinPrice = new WebClient();
                     StringBuilder mensagemPrice = new StringBuilder();
-                    DateTimeOffset agoraBrasilia = TimeZoneInfo.ConvertTime(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("E. South America Standard Time"));
+                    DateTimeOffset agoraBrasilia = DateTime.UtcNow;
                     dynamic ticker = JsonConvert.DeserializeObject(getBitcoinPrice.DownloadString("https://blockchain.info/ticker"));
-                    mensagemPrice.AppendLine("Hoje, " + agoraBrasilia.Date.ToShortDateString() + ", " + agoraBrasilia.Hour.ToString().PadLeft(2, '0') + ':' + agoraBrasilia.Minute.ToString().PadLeft(2, '0') + " (GMT -3)");
+                    mensagemPrice.AppendLine("Hoje, " + agoraBrasilia.Date.ToShortDateString() + ", " + agoraBrasilia.Hour.ToString().PadLeft(2, '0') + ':' + agoraBrasilia.Minute.ToString().PadLeft(2, '0') + " (UTC)");
                     mensagemPrice.AppendLine("*Um bitcoin* vale *R$ " + ticker.BRL.last + '*');
                     mensagemPrice.AppendLine("*Um bitcoin* vale *U$ " + ticker.USD.last + '*');
                     mensagemPrice.AppendLine("*1 real* vale só *BTC " + Math.Round(1 / Convert.ToDouble(ticker.BRL.last), 8).ToString("0" + '.' + "###############") + '*');
@@ -105,7 +105,8 @@ namespace Kebechet
                 Console.WriteLine("Problemas com API Anubis");
             }
 
-            if (String.IsNullOrEmpty(trend)) { trend = anubisTrendAPIdata.data[0].trend; }
+            if (String.IsNullOrEmpty(trend)) { trend = anubisTrendAPIdata.data[0].trend;
+ }
 
             verificarReversao(anubisTrendAPIdata);
         }
@@ -122,6 +123,7 @@ namespace Kebechet
 
                 lastTimestamp = Convert.ToInt64(anubisTrendAPIdata.data[0].timestamp);
             }
+            trend = anubisTrendAPIdata.data[0].trend;
         }
 
         static string gerarMensagemTendencia(dynamic anubisAPIdata, bool reversao)
