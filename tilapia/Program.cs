@@ -14,7 +14,7 @@ namespace Tilápia
     {
         static string trend;
         static long lastTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        static TelegramBotClient botClient = new TelegramBotClient("");
+        static TelegramBotClient botClient = new TelegramBotClient(System.IO.File.ReadAllText(@"telegramTokenAPI"));
         static dynamic anubisTrendAPIdata;
 
         static void Main(string[] args)
