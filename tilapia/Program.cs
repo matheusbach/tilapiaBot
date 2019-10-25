@@ -16,19 +16,18 @@ namespace Tilápia
         static long lastTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         static TelegramBotClient botClient = new TelegramBotClient(System.IO.File.ReadAllText(@"telegramTokenAPI"));
         static dynamic anubisTrendAPIdata;
+        static dynamic coinList;
 
         static void Main(string[] args)
         {
-            buscarInformacoes();
-
-            Console.WriteLine("Tilápia Bot Iniciado " + UnixTimeStampToDateTime(lastTimestamp) + " (UTC)\n");
+            Console.WriteLine("Tilápia Bot Iniciado (UTC)\n");
             botClient.OnMessage += botClient_OnMessage;
             botClient.StartReceiving();
 
             while (true)
             {
-                buscarInformacoes();
-                Thread.Sleep(30000);
+                coinList = JsonConvert.DeserializeObject(new WebClient().DownloadString("https://api.coinpaprika.com/v1/coins/"));
+                Thread.Sleep(300000);
             }
         }
 
@@ -36,34 +35,16 @@ namespace Tilápia
         {
             if (e.Message.Type == Telegram.Bot.Types.Enums.MessageType.Text)
             {
-                if (e.Message.Text.StartsWith("/tendencia", StringComparison.OrdinalIgnoreCase))
-                {
-                    Console.WriteLine("\n" + e.Message.Text);
-                    // if (e.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
-                    {
-                        telegramEnviarMensagem(e.Message.Chat.Id, gerarMensagemTendencia(anubisTrendAPIdata, false));
-                    }
-                }
-
-                if (e.Message.Text.StartsWith("/sr", StringComparison.OrdinalIgnoreCase) || (e.Message.Text.StartsWith("/suportetendencia", StringComparison.OrdinalIgnoreCase)))
-                {
-                    Console.WriteLine("\n" + e.Message.Text);
-                    // if (e.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
-                    {
-                        telegramEnviarMensagem(e.Message.Chat.Id, gerarMensagemSuporteResistencia());
-                    }
-                }
-
                 if (e.Message.Text.StartsWith("/start", StringComparison.OrdinalIgnoreCase))
                 {
                     Console.WriteLine("\n" + e.Message.Text);
                     if (e.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
                     {
-                        telegramEnviarMensagem(e.Message.Chat.Id, @"Use /tendencia para verificar a tendência de preços do Bitcoin. *Os dados podem não ser precisos*");
+                        telegramEnviarMensagem(e.Message.Chat.Id, @"Necessário colocar uma mensagem aqui");
                     }
                     else
                     {
-                        telegramEnviarMensagem(e.Message.Chat.Id, @"Use /tendencia *no privado* para verificar a tendência de preços do Bitcoin. *Os dados podem não ser precisos*");
+                        telegramEnviarMensagem(e.Message.Chat.Id, @"Necessário colocar aqui uma mensagem ainda");
                     }
                 }
 
@@ -87,109 +68,42 @@ namespace Tilápia
                     Console.WriteLine("\n" + e.Message.Text);
                     telegramEnviarMensagem(e.Message.Chat.Id, "Medo e ganância do cryptomercado[⠀](https://alternative.me/crypto/fear-and-greed-index.png)");
                 }
-            }
-        }
 
-        static void buscarInformacoes()
-        {
-            WebClient webClient = new WebClient();
-
-            anubisTrendAPIdata = JsonConvert.DeserializeObject(webClient.DownloadString("https://anubis.website/api/anubis/trend/"));
-
-            if (anubisTrendAPIdata.result == "success")
-            {
-                Console.Write(".");
-            }
-            else
-            {
-                Console.WriteLine("Problemas com API Anubis");
-            }
-
-            if (String.IsNullOrEmpty(trend)) { trend = anubisTrendAPIdata.data[0].trend;
- }
-
-            verificarReversao(anubisTrendAPIdata);
-        }
-
-        static void verificarReversao(dynamic APIdata)
-        {
-            if (Convert.ToInt64(APIdata.data[0].timestamp) > lastTimestamp && APIdata.data[0].trend != APIdata.data[1].trend | APIdata.data[0].trend != trend)
-            {
-                Console.WriteLine("Reversão de tendência detectada");
-
-                Telegram.Bot.Types.ChatId IDgrupoCafeESHA256 = -1001250570722;
-
-                telegramEnviarMensagem(IDgrupoCafeESHA256, gerarMensagemTendencia(anubisTrendAPIdata, true).ToString());
-
-                lastTimestamp = Convert.ToInt64(anubisTrendAPIdata.data[0].timestamp);
-            }
-            trend = anubisTrendAPIdata.data[0].trend;
-        }
-
-        static string gerarMensagemTendencia(dynamic anubisAPIdata, bool reversao)
-        {
-            string tendenciaString = "ERRO";
-            if (anubisAPIdata.data[0].trend == "LONG") { tendenciaString = "🔺 Alta"; } else if (anubisAPIdata.data[0].trend == "SHORT") { tendenciaString = "🔻 Baixa"; } else if (anubisAPIdata.data[0].trend == "NOTHING") { tendenciaString = "Indefinida"; }
-
-            StringBuilder mensagem = new StringBuilder();
-            mensagem.AppendLine("Tendência: *" + tendenciaString + "* (" + anubisAPIdata.data[0].trend + ")");
-            mensagem.AppendLine();
-
-            DateTimeOffset ultimaReversao = new DateTimeOffset();
-            DateTimeOffset ultimaTrend = new DateTimeOffset();
-            string ultimareversaoTexto = null;
-
-            int dadosAnubisQtd = ((JArray)anubisAPIdata["data"]).Count;
-            for (int i = 0; dadosAnubisQtd > i && anubisAPIdata.data[0].trend == anubisAPIdata.data[i].trend; i++)
-            {
-                ultimareversaoTexto = null;
-                if (i + 1 == dadosAnubisQtd)
+                if (e.Message.Text.StartsWith("/global", StringComparison.OrdinalIgnoreCase))
                 {
-                    ultimareversaoTexto = "Desde: Antes de ";
+                    Console.WriteLine("\n" + e.Message.Text);
+                    StringBuilder mensagem = new StringBuilder();
+                    DateTimeOffset agoraUTC = DateTime.UtcNow;
+                    dynamic ticker = JsonConvert.DeserializeObject(new WebClient().DownloadString("https://api.coinpaprika.com/v1/global"));
+
+                    mensagem.AppendLine("*Dados Globais Criptomercado*").AppendLine();
+                    mensagem.AppendLine("`" + agoraUTC.Date.ToShortDateString() + ", " + agoraUTC.Hour.ToString("##").PadLeft(2, '0') + ':' + agoraUTC.Minute.ToString("##").PadLeft(2, '0') + " (UTC)`");
+                    mensagem.AppendLine("*Marketcap:* U$ `" + ticker.market_cap_usd + ".00`");
+                    mensagem.AppendLine("*Volume 1D:* U$ `" + ticker.volume_24h_usd + ".00`");
+                    mensagem.AppendLine("*Dominance:* " + ticker.bitcoin_dominance_percentage + " %");
+                    mensagem.AppendLine("*Moedas Catalogadas:* " + ticker.cryptocurrencies_number);
+                    mensagem.AppendLine("*Mudança Marketcap 24h:* " + ticker.market_cap_change_24h + '%');
+                    mensagem.AppendLine("*Mudança Volume em 24h:* " + ticker.volume_24h_change_24h + '%');
+
+
+                    telegramEnviarMensagem(e.Message.Chat.Id, mensagem.ToString());
                 }
-                else
-                {
-                    ultimareversaoTexto = "Desde: ";
-                }
-
-                ultimaReversao = UnixTimeStampToDateTime(Convert.ToInt64(anubisAPIdata.data[i].timestamp));
-                ultimareversaoTexto += ultimaReversao.Date.ToShortDateString() + ", " + ultimaReversao.Hour.ToString().PadLeft(2, '0') + ':' + ultimaReversao.Minute.ToString().PadLeft(2, '0') + " (UTC)";
             }
-
-            ultimaTrend = UnixTimeStampToDateTime(Convert.ToInt64(anubisAPIdata.data[0].timestamp));
-
-            if (reversao)
-            {
-                mensagem.AppendLine("*Reversão de Tendência*"); mensagem.AppendLine();
-                mensagem.AppendLine(ultimaTrend.Date.ToShortDateString() + ", " + ultimaTrend.Hour.ToString().PadLeft(2, '0') + ':' + ultimaTrend.Minute.ToString().PadLeft(2, '0') + " (UTC)");
-            }
-            else
-            {
-                mensagem.AppendLine(ultimareversaoTexto);
-            }
-
-            mensagem.AppendLine("Par: BTC/USD");
-            mensagem.AppendLine("Preço recente: " + anubisAPIdata.data[0].price);
-
-            return mensagem.ToString();
         }
 
-        static string gerarMensagemSuporteResistencia()
+
+        static string getCoinID(string busca, dynamic coinList)
         {
-            WebClient webClient = new WebClient();
-            dynamic APIsr = JsonConvert.DeserializeObject(webClient.DownloadString("https://anubis.website/api/anubis/sr/"));
-
-            DateTimeOffset ultimoDado = UnixTimeStampToDateTime(Convert.ToInt64(APIsr.data[0].timestamp));
-
-            StringBuilder mensagem = new StringBuilder();
-
-            mensagem.AppendLine(ultimoDado.Date.ToShortDateString() + ", " + ultimoDado.Hour.ToString().PadLeft(2, '0') + ':' + ultimoDado.Minute.ToString().PadLeft(2, '0') + " (UTC)");
-            mensagem.AppendLine("Par: *BTC/USD*");
-            mensagem.AppendLine("Suporte: *" + Math.Round(Convert.ToDouble(APIsr.data[0].s), 2) + '*');
-            mensagem.AppendLine("Resistência: *" + Math.Round(Convert.ToDouble(APIsr.data[0].r), 2) + '*');
-
-            return mensagem.ToString();
+            for (int i = 0; busca[i] < ((JArray)busca).Count;)
+            {
+                if (String.Equals(coinList[i].id, busca, StringComparison.OrdinalIgnoreCase) | String.Equals(coinList[i].name, busca, StringComparison.OrdinalIgnoreCase) | String.Equals(coinList[i].symbol, busca, StringComparison.OrdinalIgnoreCase))
+                {
+                    return coinList[i].id;
+                }
+            }
+            return null;
         }
+
 
         public static void telegramEnviarMensagem(Telegram.Bot.Types.ChatId chatID, string mensagem)
         {
