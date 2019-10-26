@@ -21,13 +21,14 @@ namespace Tilápia
         static void Main(string[] args)
         {
             Console.WriteLine("Tilápia Bot Iniciado (UTC)\n");
+            coinList = JsonConvert.DeserializeObject(new WebClient().DownloadString("https://api.coinpaprika.com/v1/coins/"));
             botClient.OnMessage += botClient_OnMessage;
             botClient.StartReceiving();
 
             while (true)
             {
-                coinList = JsonConvert.DeserializeObject(new WebClient().DownloadString("https://api.coinpaprika.com/v1/coins/"));
                 Thread.Sleep(300000);
+                coinList = JsonConvert.DeserializeObject(new WebClient().DownloadString("https://api.coinpaprika.com/v1/coins/"));
             }
         }
 
@@ -40,11 +41,11 @@ namespace Tilápia
                     Console.WriteLine("\n" + e.Message.Text);
                     if (e.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
                     {
-                        telegramEnviarMensagem(e.Message.Chat.Id, @"Necessário colocar uma mensagem aqui");
+                        telegramEnviarMensagem(e.Message.Chat.Id, @"Necessário colocar uma mensagem aqui", true);
                     }
                     else
                     {
-                        telegramEnviarMensagem(e.Message.Chat.Id, @"Necessário colocar aqui uma mensagem ainda");
+                        telegramEnviarMensagem(e.Message.Chat.Id, @"Necessário colocar aqui uma mensagem ainda", true);
                     }
                 }
 
@@ -60,13 +61,13 @@ namespace Tilápia
                     mensagemPrice.AppendLine("*Um bitcoin* vale *U$ " + ticker.USD.last + '*');
                     mensagemPrice.AppendLine("*1 real* vale só *BTC " + Math.Round(1 / Convert.ToDouble(ticker.BRL.last), 8).ToString("0" + '.' + "###############") + '*');
 
-                    telegramEnviarMensagem(e.Message.Chat.Id, mensagemPrice.ToString());
+                    telegramEnviarMensagem(e.Message.Chat.Id, mensagemPrice.ToString(), true);
                 }
 
                 if (e.Message.Text.StartsWith("/medoeganancia", StringComparison.OrdinalIgnoreCase) || (e.Message.Text.StartsWith("/fg", StringComparison.OrdinalIgnoreCase)) || (e.Message.Text.StartsWith("/sentimento", StringComparison.OrdinalIgnoreCase)))
                 {
                     Console.WriteLine("\n" + e.Message.Text);
-                    telegramEnviarMensagem(e.Message.Chat.Id, "Medo e ganância do cryptomercado[⠀](https://alternative.me/crypto/fear-and-greed-index.png)");
+                    telegramEnviarMensagem(e.Message.Chat.Id, "Medo e ganância do cryptomercado[⠀](https://alternative.me/crypto/fear-and-greed-index.png)", false);
                 }
 
                 if (e.Message.Text.StartsWith("/global", StringComparison.OrdinalIgnoreCase))
@@ -86,17 +87,81 @@ namespace Tilápia
                     mensagem.AppendLine("*Mudança Volume em 24h:* " + ticker.volume_24h_change_24h + '%');
 
 
-                    telegramEnviarMensagem(e.Message.Chat.Id, mensagem.ToString());
+                    telegramEnviarMensagem(e.Message.Chat.Id, mensagem.ToString(), true);
+                }
+
+                if (e.Message.Text.StartsWith("/info", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine("\n" + e.Message.Text);
+                    StringBuilder mensagem = new StringBuilder();
+                    DateTimeOffset agoraUTC = DateTime.UtcNow;
+
+                    string[] comando = e.Message.Text.Split(' ', 2);
+
+                    if (comando.Length < 2)
+                    {
+                        mensagem.Append("digite o código da moeda após o comando. Ex: `/info BTC`");
+                    }
+                    else
+                    {
+                        string coinID = GetCoinID(comando[1], coinList);
+
+                        if (coinID == null)
+                        {
+                            telegramEnviarMensagem(e.Message.Chat.Id, "Moeda não encontrada. Certifique-se que digitou corretamento. Talvéz a moeda que você digitou não esteja listada em nosso indexador", true);
+                            return;
+                        }
+
+                        dynamic info = JsonConvert.DeserializeObject(new WebClient().DownloadString("https://api.coinpaprika.com/v1/coins/" + coinID));
+
+                        if (info.rank.ToString() != "0") { mensagem.Append("*" + info.rank.ToString() + " - *"); }
+                        mensagem.AppendLine("*" + info.name + " (" + info.symbol + ")*");
+                        mensagem.AppendLine();
+                        mensagem.AppendLine("_" + info.description + "_").AppendLine();
+                        if (info.whitepaper.link != null) { mensagem.AppendLine("*Whitepaper*: [acessar](" + info.whitepaper.link + ")").AppendLine(); }
+                        mensagem.AppendLine("*Detalhes:*");
+                        if (info.type != null) { mensagem.AppendLine("Tipo: `" + info.type.ToString() + "`"); }
+                        if (info.is_new != null) { mensagem.AppendLine("É nova: `" + TFSN(info.is_new.ToString()) + "`"); }
+                        if (info.is_active != null) { mensagem.AppendLine("Está ativa: `" + TFSN(info.is_active.ToString()) + "`"); }
+                        if (info.open_source != null) { mensagem.AppendLine("Open Source: `" + TFSN(info.open_source.ToString()) + "`"); }
+                        if (info.hardware_wallet != null) { mensagem.AppendLine("Hardware Wallet: `" + TFSN(info.hardware_wallet.ToString()) + "`"); }
+                        if (info.development_status != null) { mensagem.AppendLine("Estado de desenvolvimento: `" + info.development_status + "`"); }
+                        if (info.org_structure != null) { mensagem.AppendLine("Estrutura Organizacional: `" + info.org_structure + "`"); }
+                        if (info.hash_algorithm != null) { mensagem.AppendLine("Algoritmo de Hash: `" + info.hash_algorithm + "`"); }
+                        if (info.proof_type != null) { mensagem.AppendLine("Proof type: `" + info.proof_type + "`"); }
+                        mensagem.AppendLine();
+                        if (info.links != null) { mensagem.AppendLine("*Links:*"); }
+                        if (info.links.explorer != null) { mensagem.AppendLine("[explorer](" + info.links.explorer[0] + ")"); }
+                        if (info.links.facebook != null) { mensagem.AppendLine("[facebook](" + info.links.facebook[0] + ")"); }
+                        if (info.links.reddit != null) { mensagem.AppendLine("[reddit](" + info.links.reddit[0] + ")"); }
+                        if (info.links.source_code != null) { mensagem.AppendLine("[código fonte](" + info.links.source_code[0] + ")"); }
+                        if (info.links.website != null) { mensagem.AppendLine("[website](" + info.links.website[0] + ")"); }
+                        if (info.links.youtube != null) { mensagem.AppendLine("[youtube](" + info.links.youtube[0] + ")"); }
+                        if (info.links.medium != null) { mensagem.AppendLine("[medium](" + info.links.medium[0] + ")"); }
+                    }
+
+                    telegramEnviarMensagem(e.Message.Chat.Id, mensagem.ToString(), true);
                 }
             }
         }
 
-
-        static string getCoinID(string busca, dynamic coinList)
+        static string TFSN(string estado)
         {
-            for (int i = 0; busca[i] < ((JArray)busca).Count;)
+            if (String.Equals(estado, "true", StringComparison.OrdinalIgnoreCase))
             {
-                if (String.Equals(coinList[i].id, busca, StringComparison.OrdinalIgnoreCase) | String.Equals(coinList[i].name, busca, StringComparison.OrdinalIgnoreCase) | String.Equals(coinList[i].symbol, busca, StringComparison.OrdinalIgnoreCase))
+                return "sim";
+            }
+            else
+            {
+                return "não";
+            }
+        }
+
+        static string GetCoinID(string busca, dynamic coinList)
+        {
+            for (int i = 0; i < ((JArray)coinList).Count; i++)
+            {
+                if (String.Equals(coinList[i].id.ToString(), busca, StringComparison.OrdinalIgnoreCase) | String.Equals(coinList[i].name.ToString(), busca, StringComparison.OrdinalIgnoreCase) | String.Equals(coinList[i].symbol.ToString(), busca, StringComparison.OrdinalIgnoreCase))
                 {
                     return coinList[i].id;
                 }
@@ -105,9 +170,9 @@ namespace Tilápia
         }
 
 
-        public static void telegramEnviarMensagem(Telegram.Bot.Types.ChatId chatID, string mensagem)
+        public static void telegramEnviarMensagem(Telegram.Bot.Types.ChatId chatID, string mensagem, bool disablePreview)
         {
-            botClient.SendTextMessageAsync(chatID, mensagem, Telegram.Bot.Types.Enums.ParseMode.Markdown);
+            botClient.SendTextMessageAsync(chatID, mensagem, Telegram.Bot.Types.Enums.ParseMode.Markdown, disablePreview);
 
             Console.WriteLine("Mensagem enviada para " + getChatNome(chatID) + " (" + chatID + ')');
         }
