@@ -49,19 +49,37 @@ namespace Tilápia
                     }
                 }
 
-                if (e.Message.Text.StartsWith("/valor", StringComparison.OrdinalIgnoreCase))
+                if (e.Message.Text.StartsWith("/valor", StringComparison.OrdinalIgnoreCase) | e.Message.Text.StartsWith("/bitcoin", StringComparison.OrdinalIgnoreCase) | e.Message.Text.StartsWith("/btc", StringComparison.OrdinalIgnoreCase))
                 {
                     Console.WriteLine("\n" + e.Message.Text);
                     WebClient getBitcoinPrice = new WebClient();
                     StringBuilder mensagemPrice = new StringBuilder();
-                    DateTimeOffset agoraBrasilia = DateTime.UtcNow;
+                    DateTimeOffset agoraUTC = DateTime.UtcNow;
                     dynamic ticker = JsonConvert.DeserializeObject(getBitcoinPrice.DownloadString("https://blockchain.info/ticker"));
-                    mensagemPrice.AppendLine("Hoje, " + agoraBrasilia.Date.ToShortDateString() + ", " + agoraBrasilia.Hour.ToString().PadLeft(2, '0') + ':' + agoraBrasilia.Minute.ToString().PadLeft(2, '0') + " (UTC)");
+                    mensagemPrice.AppendLine("Hoje, " + agoraUTC.Date.ToShortDateString() + ", " + agoraUTC.Hour.ToString().PadLeft(2, '0') + ':' + agoraUTC.Minute.ToString().PadLeft(2, '0') + " (UTC)");
                     mensagemPrice.AppendLine("*Um bitcoin* vale *R$ " + ticker.BRL.last + '*');
                     mensagemPrice.AppendLine("*Um bitcoin* vale *U$ " + ticker.USD.last + '*');
                     mensagemPrice.AppendLine("*1 real* vale só *BTC " + Math.Round(1 / Convert.ToDouble(ticker.BRL.last), 8).ToString("0" + '.' + "###############") + '*');
 
                     telegramEnviarMensagem(e.Message.Chat.Id, mensagemPrice.ToString(), true);
+                }
+
+                if (e.Message.Text.StartsWith("/bitatlas", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine("\n" + e.Message.Text);
+                    WebClient getBitcoinPrice = new WebClient();
+                    StringBuilder mensagemPrice = new StringBuilder();
+                    DateTimeOffset agoraUTC = DateTime.UtcNow;
+                    dynamic ticker = JsonConvert.DeserializeObject(getBitcoinPrice.DownloadString("https://blockchain.info/ticker"));
+                    string bitAtlasValor = getBitcoinPrice.DownloadString("https://bitatlas.cf/price");
+                    mensagemPrice.AppendLine("Hoje, " + agoraUTC.Date.ToShortDateString() + ", " + agoraUTC.Hour.ToString().PadLeft(2, '0') + ':' + agoraUTC.Minute.ToString().PadLeft(2, '0') + " (UTC)");
+                    mensagemPrice.AppendLine("*Um bitcoin* vale `R$ " + ticker.BRL.last.ToString().Replace(".", ",") + '`');
+                    mensagemPrice.AppendLine("*Um bitAtlas* vale `R$ " + bitAtlasValor.ToString().Replace(".", ",") + '`');
+                    mensagemPrice.AppendLine();
+                    mensagemPrice.AppendLine("_Atlas Quantum: rendimento que não tem fim_");
+
+                    telegramEnviarMensagem(e.Message.Chat.Id, mensagemPrice.ToString(), true);
+                    botClient.SendStickerAsync(e.Message.Chat.Id, "CAADAgAD1QQAAs7Y6AuD1Fx6th6oRBYE");
                 }
 
                 if (e.Message.Text.StartsWith("/medoeganancia", StringComparison.OrdinalIgnoreCase) || (e.Message.Text.StartsWith("/fg", StringComparison.OrdinalIgnoreCase)) || (e.Message.Text.StartsWith("/sentimento", StringComparison.OrdinalIgnoreCase)))
