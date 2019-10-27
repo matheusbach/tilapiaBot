@@ -12,13 +12,10 @@ namespace Tilápia
 {
     internal static class Program
     {
-        static string trend;
-        static long lastTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        static TelegramBotClient botClient = new TelegramBotClient(System.IO.File.ReadAllText(@"telegramTokenAPI"));
-        static dynamic anubisTrendAPIdata;
-        static dynamic coinList;
+        private static readonly TelegramBotClient botClient = new TelegramBotClient(System.IO.File.ReadAllText("telegramTokenAPI"));
+        private static dynamic coinList;
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             Console.WriteLine("Tilápia Bot Iniciado (UTC)\n");
             coinList = JsonConvert.DeserializeObject(new WebClient().DownloadString("https://api.coinpaprika.com/v1/coins/"));
@@ -32,7 +29,7 @@ namespace Tilápia
             }
         }
 
-        static void botClient_OnMessage(object sender, Telegram.Bot.Args.MessageEventArgs e)
+        private static void botClient_OnMessage(object sender, Telegram.Bot.Args.MessageEventArgs e)
         {
             if (e.Message.Type == Telegram.Bot.Types.Enums.MessageType.Text)
             {
@@ -41,20 +38,20 @@ namespace Tilápia
                     Console.WriteLine("\n" + e.Message.Text);
                     if (e.Message.Chat.Type == Telegram.Bot.Types.Enums.ChatType.Private)
                     {
-                        telegramEnviarMensagem(e.Message.Chat.Id, @"Necessário colocar uma mensagem aqui", true);
+                        telegramEnviarMensagem(e.Message.Chat.Id, "Necessário colocar uma mensagem aqui", true);
                     }
                     else
                     {
-                        telegramEnviarMensagem(e.Message.Chat.Id, @"Necessário colocar aqui uma mensagem ainda", true);
+                        telegramEnviarMensagem(e.Message.Chat.Id, "Necessário colocar aqui uma mensagem ainda", true);
                     }
                 }
 
-                if (e.Message.Text.StartsWith("/tilapia", StringComparison.OrdinalIgnoreCase) | e.Message.Text.StartsWith("/tilápia", StringComparison.OrdinalIgnoreCase) | e.Message.Text.Contains("tilapia", StringComparison.OrdinalIgnoreCase) | e.Message.Text.Contains("tilápia", StringComparison.OrdinalIgnoreCase))
+                if (e.Message.Text.StartsWith("/tilapia", StringComparison.OrdinalIgnoreCase) || e.Message.Text.StartsWith("/tilápia", StringComparison.OrdinalIgnoreCase) || e.Message.Text.Contains("tilapia", StringComparison.OrdinalIgnoreCase) || e.Message.Text.Contains("tilápia", StringComparison.OrdinalIgnoreCase))
                 {
                     botClient.SendStickerAsync(e.Message.Chat.Id, "CAADAQADAgADpcjpLxh-FFNqO1CJFgQ", false, e.Message.MessageId);
                 }
 
-                if (e.Message.Text.StartsWith("/valor", StringComparison.OrdinalIgnoreCase) | e.Message.Text.StartsWith("/bitcoin", StringComparison.OrdinalIgnoreCase) | e.Message.Text.StartsWith("/btc", StringComparison.OrdinalIgnoreCase))
+                if (e.Message.Text.StartsWith("/valor", StringComparison.OrdinalIgnoreCase) || e.Message.Text.StartsWith("/bitcoin", StringComparison.OrdinalIgnoreCase) || e.Message.Text.StartsWith("/btc", StringComparison.OrdinalIgnoreCase))
                 {
                     Console.WriteLine("\n" + e.Message.Text);
                     WebClient getBitcoinPrice = new WebClient();
@@ -79,7 +76,7 @@ namespace Tilápia
                     string bitAtlasValor = getBitcoinPrice.DownloadString("https://bitatlas.cf/price");
                     mensagemPrice.AppendLine("Hoje, " + agoraUTC.Date.ToShortDateString() + ", " + agoraUTC.Hour.ToString().PadLeft(2, '0') + ':' + agoraUTC.Minute.ToString().PadLeft(2, '0') + " (UTC)");
                     mensagemPrice.AppendLine("*Um bitcoin* vale `R$ " + ticker.BRL.last.ToString().Replace(".", ",") + '`');
-                    mensagemPrice.AppendLine("*Um bitAtlas* vale `R$ " + bitAtlasValor.ToString().Replace(".", ",") + '`');
+                    mensagemPrice.AppendLine("*Um bitAtlas* vale `R$ " + bitAtlasValor.Replace(".", ",") + '`');
                     mensagemPrice.AppendLine();
                     mensagemPrice.AppendLine("_Atlas Quantum: rendimento que não tem fim_");
 
@@ -168,7 +165,7 @@ namespace Tilápia
             }
         }
 
-        static string TFSN(string estado)
+        private static string TFSN(string estado)
         {
             if (String.Equals(estado, "true", StringComparison.OrdinalIgnoreCase))
             {
@@ -180,7 +177,7 @@ namespace Tilápia
             }
         }
 
-        static string GetCoinID(string busca, dynamic coinList)
+        private static string GetCoinID(string busca, dynamic coinList)
         {
             for (int i = 0; i < ((JArray)coinList).Count; i++)
             {
@@ -193,14 +190,14 @@ namespace Tilápia
         }
 
 
-        public static void telegramEnviarMensagem(Telegram.Bot.Types.ChatId chatID, string mensagem, bool disablePreview)
+        private static void telegramEnviarMensagem(Telegram.Bot.Types.ChatId chatID, string mensagem, bool disablePreview)
         {
             botClient.SendTextMessageAsync(chatID, mensagem, Telegram.Bot.Types.Enums.ParseMode.Markdown, disablePreview);
 
             Console.WriteLine("Mensagem enviada para " + getChatNome(chatID) + " (" + chatID + ')');
         }
 
-        static string getChatNome(Telegram.Bot.Types.ChatId chatID)
+        private static string getChatNome(Telegram.Bot.Types.ChatId chatID)
         {
             string nomeChat = null;
 
@@ -208,7 +205,7 @@ namespace Tilápia
             {
                 Telegram.Bot.Types.Chat chat = botClient.GetChatAsync(chatID).Result;
 
-                if (chat.Type == Telegram.Bot.Types.Enums.ChatType.Channel || chat.Type == Telegram.Bot.Types.Enums.ChatType.Group || chat.Type == Telegram.Bot.Types.Enums.ChatType.Supergroup && chat.Title.ToString().Length > 0)
+                if (chat.Type == Telegram.Bot.Types.Enums.ChatType.Channel || chat.Type == Telegram.Bot.Types.Enums.ChatType.Group || chat.Type == Telegram.Bot.Types.Enums.ChatType.Supergroup && chat.Title.Length > 0)
                 {
                     nomeChat += chat.Title;
                 }
@@ -231,7 +228,7 @@ namespace Tilápia
             return nomeChat;
         }
 
-        public static DateTimeOffset UnixTimeStampToDateTime(long unixTimeStamp)
+        private static DateTimeOffset UnixTimeStampToDateTime(long unixTimeStamp)
         {
             System.DateTimeOffset dtDateTime = new DateTime(1970, 1, 1, 0, 0, 0);
             dtDateTime = dtDateTime.AddMilliseconds(unixTimeStamp);
