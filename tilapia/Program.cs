@@ -49,6 +49,11 @@ namespace Tilápia
                     }
                 }
 
+                if (e.Message.Text.StartsWith("/tilapia", StringComparison.OrdinalIgnoreCase) | e.Message.Text.StartsWith("/tilápia", StringComparison.OrdinalIgnoreCase) | e.Message.Text.Contains("tilapia", StringComparison.OrdinalIgnoreCase) | e.Message.Text.Contains("tilápia", StringComparison.OrdinalIgnoreCase))
+                {
+                    botClient.SendStickerAsync(e.Message.Chat.Id, "CAADAQADAgADpcjpLxh-FFNqO1CJFgQ", false, e.Message.MessageId);
+                }
+
                 if (e.Message.Text.StartsWith("/valor", StringComparison.OrdinalIgnoreCase) | e.Message.Text.StartsWith("/bitcoin", StringComparison.OrdinalIgnoreCase) | e.Message.Text.StartsWith("/btc", StringComparison.OrdinalIgnoreCase))
                 {
                     Console.WriteLine("\n" + e.Message.Text);
