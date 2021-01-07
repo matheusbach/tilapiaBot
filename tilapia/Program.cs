@@ -46,6 +46,11 @@ namespace Tilápia
                     }
                 }
 
+                if (e.Message.Text.StartsWith("nano", StringComparison.OrdinalIgnoreCase))
+                {
+                    telegramEnviarMensagem(e.Message.Chat.Id, @"⋰·⋰ = 💡", true);
+                }
+
                 if (e.Message.Text.StartsWith("/tilapia", StringComparison.OrdinalIgnoreCase) || e.Message.Text.StartsWith("/tilápia", StringComparison.OrdinalIgnoreCase) || e.Message.Text.Contains("tilapia", StringComparison.OrdinalIgnoreCase) || e.Message.Text.Contains("tilápia", StringComparison.OrdinalIgnoreCase))
                 {
                     botClient.SendStickerAsync(e.Message.Chat.Id, "CAADAQADAgADpcjpLxh-FFNqO1CJFgQ", false, e.Message.MessageId);
@@ -66,23 +71,6 @@ namespace Tilápia
                     telegramEnviarMensagem(e.Message.Chat.Id, mensagemPrice.ToString(), true);
                 }
 
-                if (e.Message.Text.StartsWith("/bitatlas", StringComparison.OrdinalIgnoreCase))
-                {
-                    Console.WriteLine("\n" + e.Message.Text);
-                    WebClient getBitcoinPrice = new WebClient();
-                    StringBuilder mensagemPrice = new StringBuilder();
-                    DateTimeOffset agoraUTC = DateTime.UtcNow;
-                    dynamic ticker = JsonConvert.DeserializeObject(getBitcoinPrice.DownloadString("https://blockchain.info/ticker"));
-                    string bitAtlasValor = getBitcoinPrice.DownloadString("https://bitatlas.cf/price");
-                    mensagemPrice.AppendLine("Hoje, " + agoraUTC.Date.ToShortDateString() + ", " + agoraUTC.Hour.ToString().PadLeft(2, '0') + ':' + agoraUTC.Minute.ToString().PadLeft(2, '0') + " (UTC)");
-                    mensagemPrice.AppendLine("*Um bitcoin* vale `R$ " + ticker.BRL.last.ToString().Replace(".", ",") + '`');
-                    mensagemPrice.AppendLine("*Um bitAtlas* vale `R$ " + bitAtlasValor.Replace(".", ",") + '`');
-                    mensagemPrice.AppendLine();
-                    mensagemPrice.AppendLine("_Atlas Quantum: rendimento que não tem fim_");
-
-                    telegramEnviarMensagem(e.Message.Chat.Id, mensagemPrice.ToString(), true);
-                    botClient.SendStickerAsync(e.Message.Chat.Id, "CAADAgAD1QQAAs7Y6AuD1Fx6th6oRBYE");
-                }
 
                 if (e.Message.Text.StartsWith("/medoeganancia", StringComparison.OrdinalIgnoreCase) || (e.Message.Text.StartsWith("/fg", StringComparison.OrdinalIgnoreCase)) || (e.Message.Text.StartsWith("/sentimento", StringComparison.OrdinalIgnoreCase)))
                 {
@@ -162,6 +150,40 @@ namespace Tilápia
 
                     telegramEnviarMensagem(e.Message.Chat.Id, mensagem.ToString(), true);
                 }
+
+                if (e.Message.Text.StartsWith("/a", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine("\n" + e.Message.Text);
+                    StringBuilder mensagem = new StringBuilder();
+                    DateTimeOffset agoraUTC = DateTime.UtcNow;
+
+                    string[] comando = e.Message.Text.Split(' ', 2);
+
+                    if (comando.Length < 2)
+                    {
+                        mensagem.Append("digite o código da moeda após o comando. Ex: `/a BTC`");
+                    }
+                    else
+                    {
+                        string coinID = GetCoinID(comando[1], coinList);
+
+                        if (coinID == null)
+                        {
+                            telegramEnviarMensagem(e.Message.Chat.Id, "Moeda não encontrada. Certifique-se que digitou corretamento. Talvéz a moeda que você digitou não esteja listada em nosso indexador", true);
+                            return;
+                        }
+
+                        dynamic info = JsonConvert.DeserializeObject(new WebClient().DownloadString("https://api.coinpaprika.com/v1/tickers/" + coinID));
+
+                        mensagem.AppendLine("*" + info.name + " (" + info.symbol + ")*");
+                        mensagem.AppendLine("Rank: " + info.rank);
+                        mensagem.AppendLine("ß: " + Math.Round(Convert.ToDouble(info.beta_value), 4));
+                        mensagem.AppendLine("Price: U$ " + Math.Round(Convert.ToDouble(info.quotes.USD.price), 2) + " (" + Math.Round(Convert.ToDouble(info.quotes.USD.percent_change_24h), 2) + "%)");
+                        mensagem.AppendLine("Price: R$ " + Math.Round(Convert.ToDouble(info.quotes.USD.price * CotacaoDollar()), 2));
+                    }
+
+                    telegramEnviarMensagem(e.Message.Chat.Id, mensagem.ToString(), true);
+                }
             }
         }
 
@@ -189,6 +211,12 @@ namespace Tilápia
             return null;
         }
 
+        private static double CotacaoDollar()
+        {
+            dynamic info = JsonConvert.DeserializeObject(new WebClient().DownloadString("https://economia.awesomeapi.com.br/json/daily/USD-BRL"));
+
+            return Math.Round(Convert.ToDouble(info[0].ask), 2);
+        }
 
         private static void telegramEnviarMensagem(Telegram.Bot.Types.ChatId chatID, string mensagem, bool disablePreview)
         {
