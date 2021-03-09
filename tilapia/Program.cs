@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Net;
@@ -15,12 +15,14 @@ namespace Tilápia
 
         private static void Main(string[] args)
         {
-            Console.WriteLine("Tilápia Bot Iniciado (UTC)\n");
+            Console.WriteLine("Tilápia Bot Iniciado\n");
 
-            try { coinList = JsonConvert.DeserializeObject(new WebClient().DownloadString("https://api.coinpaprika.com/v1/coins/")); } catch (Exception) { }
+            try { Console.Write("Obtendo lista de moedas... "); coinList = JsonConvert.DeserializeObject(new WebClient().DownloadString("https://api.coinpaprika.com/v1/coins/")); Console.WriteLine("feito"); } catch (Exception) { Console.WriteLine("falhou"); }
 
             botClient.OnMessage += botClient_OnMessage;
             botClient.StartReceiving();
+
+            Console.WriteLine("botClient Started");
 
             while (true)
             {
@@ -211,7 +213,7 @@ namespace Tilápia
                     }
                 }
             }
-            catch { }
+            catch (Exception ee) { Console.WriteLine(ee.Message); }
         }
 
         private static string TFSN(string estado)
