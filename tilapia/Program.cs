@@ -10,7 +10,7 @@ namespace Tilápia
 {
     internal static class Program
     {
-        private static readonly TelegramBotClient botClient = new TelegramBotClient(System.IO.File.ReadAllText("telegramTokenAPI"));
+        private static readonly TelegramBotClient botClient = new TelegramBotClient(System.IO.File.ReadAllText("telegramTokenAPI").Trim('\r', '\n'));
         private static dynamic coinList;
 
         private static void Main(string[] args)
