@@ -56,7 +56,9 @@ namespace Tilápia
 
                     if (e.Message.Text.StartsWith("nano", StringComparison.OrdinalIgnoreCase))
                     {
-                        int randomnumber = new Random().Next(0, 5);
+                        Console.WriteLine("⋰·⋰ = 💡");
+                        
+                        int randomnumber = new Random().Next(0, 2);
 
                         switch (randomnumber)
                         {
