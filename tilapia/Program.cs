@@ -246,7 +246,7 @@ namespace Tilápia
         {
             dynamic info = JsonConvert.DeserializeObject(new WebClient().DownloadString("https://economia.awesomeapi.com.br/json/last/USD-BRL"));
 
-            return Math.Round(Convert.ToDouble(info[0].ask), 2);
+            return Math.Round(Convert.ToDouble(info.USDBRL.ask), 2);
         }
 
         private static void telegramEnviarMensagem(Telegram.Bot.Types.ChatId chatID, string mensagem, bool disablePreview)
