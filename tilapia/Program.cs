@@ -213,6 +213,17 @@ namespace Tilápia
 
                         telegramEnviarMensagem(e.Message.Chat.Id, mensagem.ToString(), true);
                     }
+                    
+                    if (e.Message.Text.StartsWith("/dolar", StringComparison.OrdinalIgnoreCase) || e.Message.Text.StartsWith("/usd", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine("\n" + e.Message.Text);
+                        StringBuilder mensagem = new StringBuilder();
+
+                        mensagem.AppendLine("*Dolar cotado em real: *`" + Math.Round(CotacaoDollar(), 2).ToString() + "`");
+                        mensagem.AppendLine("*Real cotado em dolar: *`" + Math.Round(CotacaoDollar(), 2).ToString() + "`");
+
+                        telegramEnviarMensagem(e.Message.Chat.Id, mensagem.ToString(), true);
+                    }
                 }
             }
             catch (Exception ee) { Console.WriteLine(ee.Message); }
