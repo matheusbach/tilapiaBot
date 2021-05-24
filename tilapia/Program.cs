@@ -220,7 +220,7 @@ namespace Tilápia
                         StringBuilder mensagem = new StringBuilder();
 
                         mensagem.AppendLine("*Dolar cotado em real: *`" + Math.Round(CotacaoDollar(), 2).ToString() + "`");
-                        mensagem.AppendLine("*Real cotado em dolar: *`" + Math.Round(CotacaoDollar(), 2).ToString() + "`");
+                        mensagem.AppendLine("*Real cotado em dolar: *`" + Math.Round(1 / CotacaoDollar(), 2).ToString() + "`");
 
                         telegramEnviarMensagem(e.Message.Chat.Id, mensagem.ToString(), true);
                     }
