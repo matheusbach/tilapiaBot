@@ -313,7 +313,7 @@ namespace Tilápia
             return nomeChat;
         }
 
-        private static List<string> listaDeXingamentosCultos = new List<string>() { "abantesma", "bonifrate", "concupiscente", "dendroclasta", "espurco", "futre", "grasnador", "histrião", "intrujão", "jacobeu", "liliputiano", "misólogo", "nóxio", "obnubilado", "peralvilho", "quebra-louças", "réprobo", "soez", "traga-mouros", "usurário", "valdevinos", "xenômano", "zoantropo"};
+        private static List<string> listaDeXingamentosCultos = new List<string>() { "abantesma", "bonifrate", "concupiscente", "dendroclasta", "espurco", "futre", "grasnador", "histrião", "intrujão", "jacobeu", "liliputiano", "misólogo", "nóxio", "obnubilado", "peralvilho", "quebra-louças", "réprobo", "soez", "traga-mouros", "usurário", "valdevinos", "xenômano", "zoantropo" };
 
         public static string XingamentoGratuito(int tgId = 0)
         {
@@ -321,24 +321,28 @@ namespace Tilápia
             {
                 case 1:
                     {
-                        return "_Todos sabem o quão " + listaDeXingamentosCultos[new Random().Next(listaDeXingamentosCultos.Count)] + " o " + "[Atlom05](t.me/atlom05)" + " é_";
+                        return "Todos sabem o quão " + listaDeXingamentosCultos[new Random().Next(listaDeXingamentosCultos.Count)] + " o " + "[Atlom05](t.me/atlom05)" + " é";
                     }
                     break;
+
                 case 2:
                     {
-                        return "_[Atlom05](t.me/atlom05)" + " só não é mais " + listaDeXingamentosCultos[new Random().Next(listaDeXingamentosCultos.Count)] + " por falta de intelecto_";
+                        return "[Atlom05](t.me/atlom05)" + " só não é mais " + listaDeXingamentosCultos[new Random().Next(listaDeXingamentosCultos.Count)] + " por falta de intelecto";
                     }
                     break;
+
                 case 3:
                     {
                         return "[Atlom05](t.me/atlom05)" + " deixe de ser tão " + listaDeXingamentosCultos[new Random().Next(listaDeXingamentosCultos.Count)];
                     }
                     break;
+
                 case 4:
                     {
                         return "Além de " + listaDeXingamentosCultos[new Random().Next(0, listaDeXingamentosCultos.Count / 2)] + " o " + "[Atlom05](t.me/atlom05)" + " também é " + listaDeXingamentosCultos[new Random().Next(listaDeXingamentosCultos.Count / 2, listaDeXingamentosCultos.Count)];
                     }
                     break;
+
                 default:
                     {
                         return null;
