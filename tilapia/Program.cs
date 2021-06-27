@@ -1,6 +1,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Text;
 using System.Threading;
@@ -57,7 +58,7 @@ namespace Tilápia
                     if (e.Message.Text.StartsWith("nano", StringComparison.OrdinalIgnoreCase))
                     {
                         Console.WriteLine("⋰·⋰ = 💡");
-                        
+
                         int randomnumber = new Random().Next(0, 2);
 
                         switch (randomnumber)
@@ -208,20 +209,36 @@ namespace Tilápia
                             mensagem.AppendLine("Rank: " + info.rank);
                             mensagem.AppendLine("ß: " + Math.Round(Convert.ToDouble(info.beta_value), 4));
                             mensagem.AppendLine("Price: U$ " + Math.Round(Convert.ToDouble(info.quotes.USD.price), 2) + " (" + Math.Round(Convert.ToDouble(info.quotes.USD.percent_change_24h), 2) + "%)");
-                            mensagem.AppendLine("Price: R$ " + Math.Round(Convert.ToDouble(info.quotes.USD.price * CotacaoDollar()), 2));
+                            mensagem.AppendLine("Price: R$ " + Math.Round(Convert.ToDouble(info.quotes.USD.price * (double)LastMarketDataAwesomeApi(new[] { "USD-BRL" }).USDBRL.ask), 2));
                         }
 
                         telegramEnviarMensagem(e.Message.Chat.Id, mensagem.ToString(), true);
                     }
-                    
+
                     if (e.Message.Text.StartsWith("/dolar", StringComparison.OrdinalIgnoreCase) || e.Message.Text.StartsWith("/usd", StringComparison.OrdinalIgnoreCase))
                     {
                         Console.WriteLine("\n" + e.Message.Text);
                         StringBuilder mensagem = new StringBuilder();
 
-                        mensagem.AppendLine("*Dolar cotado em real: *`" + Math.Round(CotacaoDollar(), 2).ToString() + "`");
-                        mensagem.AppendLine("*Real cotado em dolar: *`" + Math.Round(1 / CotacaoDollar(), 2).ToString() + "`");
+                        dynamic marketData = LastMarketDataAwesomeApi(new[] { "USD-BRL" });
 
+                        mensagem.AppendLine("*Dolar cotado em real: *`" + Math.Round((double)marketData.USDBRL.ask, 2).ToString() + "`");
+                        mensagem.AppendLine("*Real cotado em dolar: *`" + Math.Round(1 / (double)marketData.USDBRL.ask, 2).ToString() + "`");
+
+                        telegramEnviarMensagem(e.Message.Chat.Id, mensagem.ToString(), true);
+                    }
+
+                    if (e.Message.Text.StartsWith("/euro", StringComparison.OrdinalIgnoreCase) || e.Message.Text.StartsWith("/eur", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine("\n" + e.Message.Text);
+                        StringBuilder mensagem = new StringBuilder();
+
+                        dynamic marketData = LastMarketDataAwesomeApi(new[] { "EUR-BRL" });
+
+                        mensagem.AppendLine("*Euro cotado em real: *`" + Math.Round((double)marketData.EURBRL.ask, 2).ToString() + "`");
+                        mensagem.AppendLine("*Real cotado em euro: *`" + Math.Round(1 / (double)marketData.EURBRL.ask, 2).ToString() + "`");
+                        mensagem.AppendLine();
+                        try { mensagem.AppendLine(XingamentoGratuito(1834100906)); } catch { }
                         telegramEnviarMensagem(e.Message.Chat.Id, mensagem.ToString(), true);
                     }
                 }
@@ -253,11 +270,9 @@ namespace Tilápia
             return null;
         }
 
-        private static double CotacaoDollar()
+        private static dynamic LastMarketDataAwesomeApi(string[] pairs)
         {
-            dynamic info = JsonConvert.DeserializeObject(new WebClient().DownloadString("https://economia.awesomeapi.com.br/json/last/USD-BRL"));
-
-            return Math.Round(Convert.ToDouble(info.USDBRL.ask), 2);
+            return JsonConvert.DeserializeObject(new WebClient().DownloadString("https://economia.awesomeapi.com.br/json/last/" + string.Join(',', pairs)));
         }
 
         private static void telegramEnviarMensagem(Telegram.Bot.Types.ChatId chatID, string mensagem, bool disablePreview)
@@ -296,6 +311,39 @@ namespace Tilápia
             }
 
             return nomeChat;
+        }
+
+        private static List<string> listaDeXingamentosCultos = new List<string>() { "abantesma", "bonifrate", "concupiscente", "dendroclasta", "espurco", "futre", "grasnador", "histrião", "intrujão", "jacobeu", "liliputiano", "misólogo", "nóxio", "obnubilado", "peralvilho", "quebra-louças", "réprobo", "soez", "traga-mouros", "usurário", "valdevinos", "xenômano", "zoantropo"};
+
+        public static string XingamentoGratuito(int tgId = 0)
+        {
+            switch (new Random().Next(5))
+            {
+                case 1:
+                    {
+                        return "_Todos sabem o quão " + listaDeXingamentosCultos[new Random().Next(listaDeXingamentosCultos.Count)] + " o " + "[Atlom05](t.me/atlom05)" + " é_";
+                    }
+                    break;
+                case 2:
+                    {
+                        return "_[Atlom05](t.me/atlom05)" + " só não é mais " + listaDeXingamentosCultos[new Random().Next(listaDeXingamentosCultos.Count)] + " por falta de intelecto_";
+                    }
+                    break;
+                case 3:
+                    {
+                        return "[Atlom05](t.me/atlom05)" + " deixe de ser tão " + listaDeXingamentosCultos[new Random().Next(listaDeXingamentosCultos.Count)];
+                    }
+                    break;
+                case 4:
+                    {
+                        return "Além de " + listaDeXingamentosCultos[new Random().Next(0, listaDeXingamentosCultos.Count / 2)] + " o " + "[Atlom05](t.me/atlom05)" + " também é " + listaDeXingamentosCultos[new Random().Next(listaDeXingamentosCultos.Count / 2, listaDeXingamentosCultos.Count)];
+                    }
+                    break;
+                default:
+                    {
+                        return null;
+                    }
+            }
         }
 
         private static DateTimeOffset UnixTimeStampToDateTime(long unixTimeStamp)
