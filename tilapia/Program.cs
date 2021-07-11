@@ -241,6 +241,19 @@ namespace Tilápia
                         try { mensagem.AppendLine(XingamentoGratuito(1834100906)); } catch { }
                         telegramEnviarMensagem(e.Message.Chat.Id, mensagem.ToString(), true);
                     }
+
+                    if (e.Message.Text.StartsWith("/peso", StringComparison.OrdinalIgnoreCase) || e.Message.Text.StartsWith("/ars", StringComparison.OrdinalIgnoreCase))
+                    {
+                        Console.WriteLine("\n" + e.Message.Text);
+                        StringBuilder mensagem = new StringBuilder();
+
+                        dynamic marketData = LastMarketDataAwesomeApi(new[] { "ARS-BRL" });
+
+                        mensagem.AppendLine("*Peso cotado em real: *`" + Math.Round((double)marketData.ARSBRL.ask, 4).ToString() + "`");
+                        mensagem.AppendLine("*Real cotado em peso: *`" + Math.Round(1 / (double)marketData.ARSBRL.ask, 4).ToString() + "`");
+
+                        telegramEnviarMensagem(e.Message.Chat.Id, mensagem.ToString(), true);
+                    }
                 }
             }
             catch (Exception ee) { Console.WriteLine(ee.Message); }
