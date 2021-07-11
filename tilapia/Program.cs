@@ -321,25 +321,25 @@ namespace Tilápia
             {
                 case 1:
                     {
-                        return "Todos sabem o quão " + listaDeXingamentosCultos[new Random().Next(listaDeXingamentosCultos.Count)] + " o " + "[Atlom05](t.me/atlom05)" + " é";
+                        return "Todos sabem o quão " + listaDeXingamentosCultos[new Random().Next(listaDeXingamentosCultos.Count)] + " o " + "[Agente Álvaro](t.me/atlom05)" + " é";
                     }
                     break;
 
                 case 2:
                     {
-                        return "[Atlom05](t.me/atlom05)" + " só não é mais " + listaDeXingamentosCultos[new Random().Next(listaDeXingamentosCultos.Count)] + " por falta de intelecto";
+                        return "[Agente Álvaro](t.me/atlom05)" + " só não é mais " + listaDeXingamentosCultos[new Random().Next(listaDeXingamentosCultos.Count)] + " por falta de intelecto";
                     }
                     break;
 
                 case 3:
                     {
-                        return "[Atlom05](t.me/atlom05)" + " deixe de ser tão " + listaDeXingamentosCultos[new Random().Next(listaDeXingamentosCultos.Count)];
+                        return "[Agente Álvaro](t.me/atlom05)" + " deixe de ser tão " + listaDeXingamentosCultos[new Random().Next(listaDeXingamentosCultos.Count)];
                     }
                     break;
 
                 case 4:
                     {
-                        return "Além de " + listaDeXingamentosCultos[new Random().Next(0, listaDeXingamentosCultos.Count / 2)] + " o " + "[Atlom05](t.me/atlom05)" + " também é " + listaDeXingamentosCultos[new Random().Next(listaDeXingamentosCultos.Count / 2, listaDeXingamentosCultos.Count)];
+                        return "Além de " + listaDeXingamentosCultos[new Random().Next(0, listaDeXingamentosCultos.Count / 2)] + " o " + "[Agente Álvaro](t.me/atlom05)" + " também é " + listaDeXingamentosCultos[new Random().Next(listaDeXingamentosCultos.Count / 2, listaDeXingamentosCultos.Count)];
                     }
                     break;
 
