@@ -59,7 +59,7 @@ namespace Tilápia
                     {
                         Console.WriteLine("⋰·⋰ = 💡");
 
-                        int randomnumber = new Random().Next(0, 2);
+                        int randomnumber = new Random().Next(0, 3);
 
                         switch (randomnumber)
                         {
