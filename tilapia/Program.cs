@@ -77,7 +77,7 @@ namespace Tilápia
                         }
                     }
 
-                    if (e.Message.Text.StartsWith("/tilapia", StringComparison.OrdinalIgnoreCase) || e.Message.Text.StartsWith("/tilápia", StringComparison.OrdinalIgnoreCase) || e.Message.Text.Contains("tilapia", StringComparison.OrdinalIgnoreCase) || e.Message.Text.Contains("tilápia", StringComparison.OrdinalIgnoreCase))
+                    if (e.Message.Text.Contains("tilapia", StringComparison.OrdinalIgnoreCase) || e.Message.Text.Contains("tilápia", StringComparison.OrdinalIgnoreCase))
                     {
                         botClient.SendStickerAsync(e.Message.Chat.Id, "CAADAQADAgADpcjpLxh-FFNqO1CJFgQ", false, e.Message.MessageId);
                     }
