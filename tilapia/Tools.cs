@@ -2,11 +2,7 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
-using Tilapia;
 
 namespace Tilapia
 {
@@ -51,25 +47,21 @@ namespace Tilapia
                     {
                         return "Todos sabem o quão " + listaDeXingamentosCultos[new Random().Next(listaDeXingamentosCultos.Count)] + " o " + "[Agente Álvaro](t.me/CypherSecoficial)" + " é";
                     }
-                    break;
 
                 case 2:
                     {
                         return "[Agente Álvaro](t.me/CypherSecoficial)" + " só não é mais " + listaDeXingamentosCultos[new Random().Next(listaDeXingamentosCultos.Count)] + " por falta de intelecto";
                     }
-                    break;
 
                 case 3:
                     {
                         return "[Agente Álvaro](t.me/CypherSecoficial)" + " deixe de ser tão " + listaDeXingamentosCultos[new Random().Next(listaDeXingamentosCultos.Count)];
                     }
-                    break;
 
                 case 4:
                     {
                         return "Além de " + listaDeXingamentosCultos[new Random().Next(0, listaDeXingamentosCultos.Count / 2)] + " o " + "[Agente Álvaro](t.me/CypherSecoficial)" + " também é " + listaDeXingamentosCultos[new Random().Next(listaDeXingamentosCultos.Count / 2, listaDeXingamentosCultos.Count)];
                     }
-                    break;
 
                 default:
                     {

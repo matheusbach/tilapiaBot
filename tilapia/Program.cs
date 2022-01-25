@@ -1,12 +1,8 @@
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
 using System.Net;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Telegram.Bot;
 using Telegram.Bot.Extensions.Polling;
 using Telegram.Bot.Types;
@@ -28,7 +24,7 @@ namespace Tilapia
             CultureInfo.DefaultThreadCurrentUICulture = ci;
             CultureInfo.CurrentCulture = ci;
             CultureInfo.CurrentUICulture = ci;
-            
+
             Console.WriteLine("Tilápia Bot Iniciado\n");
 
             try { Console.Write("Obtendo lista de moedas... "); coinList = JsonConvert.DeserializeObject(new WebClient().DownloadString("https://api.coinpaprika.com/v1/coins/")); Console.WriteLine("feito"); } catch (Exception) { Console.WriteLine("falhou"); }
@@ -56,7 +52,5 @@ namespace Tilapia
                 catch { }
             }
         }
-
-        
     }
 }
