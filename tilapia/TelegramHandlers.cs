@@ -101,7 +101,7 @@ namespace Tilapia
             {
                 Console.WriteLine("⋰·⋰ = 💡");
 
-                int randomnumber = new Random().Next(0, 3);
+                int randomnumber = new Random().Next(0, 4);
 
                 switch (randomnumber)
                 {
