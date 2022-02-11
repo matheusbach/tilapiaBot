@@ -105,13 +105,13 @@ namespace Tilapia
 
                 switch (randomnumber)
                 {
-                    case 0: return await botClient.SendTextMessageAsync(chatId: message.Chat.Id, text: @"⋰·⋰ = 💡");
+                    case 0: return await botClient.SendTextMessageAsync(chatId: message.Chat.Id, text: @"⋰·⋰ = 💡", parseMode: ParseMode.Markdown);
 
-                    case 1: return await botClient.SendTextMessageAsync(chatId: message.Chat.Id, text: @"*NANO é luz!*");
+                    case 1: return await botClient.SendTextMessageAsync(chatId: message.Chat.Id, text: @"*NANO é luz!*", parseMode: ParseMode.Markdown);
 
                     case 2: return await botClient.SendStickerAsync(chatId: message.Chat.Id, sticker: "CAACAgEAAxkBAAEB8TNgPmq4ThlL_SfjDsQ3hjk4NfjJ7wAC-gADO33ZRfzHd3_kBtX-HgQ", disableNotification: false, replyToMessageId: message.MessageId);
 
-                    default: return await botClient.SendTextMessageAsync(chatId: message.Chat.Id, text: @"*NANO é luz!* (quem apagou favor ligar de volta)");
+                    default: return await botClient.SendTextMessageAsync(chatId: message.Chat.Id, text: @"*NANO é luz!* (quem apagou favor ligar de volta)", parseMode: ParseMode.Markdown);
                 }
             }
 
