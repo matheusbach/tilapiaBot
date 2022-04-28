@@ -77,6 +77,20 @@ namespace Tilapia
                 "/dolar" => DolarAmericano(botClient, message),
                 "/euro" => EuroEuropeu(botClient, message),
                 "/peso" => PesoArgentino(botClient, message),
+
+                "/start@CryptocurrenciesInfoBot" => Usage(botClient, message),
+                "/help@CryptocurrenciesInfoBot" => Usage(botClient, message),
+                "/btc@CryptocurrenciesInfoBot" => Valor(botClient, message),
+                "/valor@CryptocurrenciesInfoBot" => Valor(botClient, message),
+                "/fg@CryptocurrenciesInfoBot" => MedoEGanancia(botClient, message),
+                "/fearandgreed@CryptocurrenciesInfoBot" => MedoEGanancia(botClient, message),
+                "/ping@CryptocurrenciesInfoBot" => Ping(botClient, message),
+                "/global@CryptocurrenciesInfoBot" => Global(botClient, message),
+                "/info@CryptocurrenciesInfoBot" => InfoCoin(botClient, message),
+                "/a@CryptocurrenciesInfoBot" => PriceCoin(botClient, message),
+                "/dolar@CryptocurrenciesInfoBot" => DolarAmericano(botClient, message),
+                "/euro@CryptocurrenciesInfoBot" => EuroEuropeu(botClient, message),
+                "/peso@CryptocurrenciesInfoBot" => PesoArgentino(botClient, message),
                 _ => null
             };
 
