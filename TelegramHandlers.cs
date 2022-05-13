@@ -15,6 +15,11 @@ namespace Tilapia
 {
     public class TelegramHandlers
     {
+        // 4 horas
+        private const int NANO_LUZ_INTERVAL = 14400;
+
+        private static int LastNanoLuz = 0;
+
         public static Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
         {
             var ErrorMessage = exception switch
@@ -31,12 +36,6 @@ namespace Tilapia
         {
             var handler = update.Type switch
             {
-                // UpdateType.Unknown:
-                // UpdateType.ChannelPost:
-                // UpdateType.EditedChannelPost:
-                // UpdateType.ShippingQuery:
-                // UpdateType.PreCheckoutQuery:
-                // UpdateType.Poll:
                 UpdateType.Message => BotOnMessageReceived(botClient, update.Message!),
                 UpdateType.EditedMessage => BotOnMessageReceived(botClient, update.EditedMessage!),
                 UpdateType.CallbackQuery => BotOnCallbackQueryReceived(botClient, update.CallbackQuery!),
@@ -62,7 +61,7 @@ namespace Tilapia
 
             Task<Message> action;
 
-            action = message.Text!.ToLowerInvariant().Normalize().Split(' ')[0] switch
+            action = message.Text!.ToLowerInvariant().Normalize().Split(' ')[0].Split('@')[0] switch
             {
                 "/start" => Usage(botClient, message),
                 "/help" => Usage(botClient, message),
@@ -77,19 +76,6 @@ namespace Tilapia
                 "/dolar" => DolarAmericano(botClient, message),
                 "/euro" => EuroEuropeu(botClient, message),
                 "/peso" => PesoArgentino(botClient, message),
-                "/start@cryptocurrenciesinfobot" => Usage(botClient, message),
-                "/help@cryptocurrenciesinfobot" => Usage(botClient, message),
-                "/btc@cryptocurrenciesinfobot" => Valor(botClient, message),
-                "/valor@cryptocurrenciesinfobot" => Valor(botClient, message),
-                "/fg@cryptocurrenciesinfobot" => MedoEGanancia(botClient, message),
-                "/fearandgreed@cryptocurrenciesinfobot" => MedoEGanancia(botClient, message),
-                "/ping@cryptocurrenciesinfobot" => Ping(botClient, message),
-                "/global@cryptocurrenciesinfobot" => Global(botClient, message),
-                "/info@cryptocurrenciesinfobot" => InfoCoin(botClient, message),
-                "/a@cryptocurrenciesinfobot" => PriceCoin(botClient, message),
-                "/dolar@cryptocurrenciesinfobot" => DolarAmericano(botClient, message),
-                "/euro@cryptocurrenciesinfobot" => EuroEuropeu(botClient, message),
-                "/peso@cryptocurrenciesinfobot" => PesoArgentino(botClient, message),
                 _ => null
             };
 
@@ -112,6 +98,14 @@ namespace Tilapia
 
             static async Task<Message> NanoLuz(ITelegramBotClient botClient, Message message)
             {
+                int now = DateTimeOffset.Now.ToUnixTimeSeconds();
+                if (now - LastNanoLuz < NANO_LUZ_INTERVAL)
+                {
+                    Console.WriteLine("⋰·⋰ = 🤫");
+                    return;
+                }
+
+                LastNanoLuz = now;
                 Console.WriteLine("⋰·⋰ = 💡");
 
                 int randomnumber = new Random().Next(0, 4);
