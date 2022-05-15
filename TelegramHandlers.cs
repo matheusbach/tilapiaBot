@@ -102,7 +102,7 @@ namespace Tilapia
                 if (now - LastNanoLuz < NANO_LUZ_INTERVAL)
                 {
                     Console.WriteLine("⋰·⋰ = 🤫");
-                    return message);
+                    return message;
                 }
 
                 LastNanoLuz = now;
