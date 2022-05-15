@@ -18,7 +18,7 @@ namespace Tilapia
         // 4 horas
         private const int NANO_LUZ_INTERVAL = 14400;
 
-        private static int LastNanoLuz = 0;
+        private static long LastNanoLuz = 0;
 
         public static Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
         {
@@ -98,11 +98,11 @@ namespace Tilapia
 
             static async Task<Message> NanoLuz(ITelegramBotClient botClient, Message message)
             {
-                int now = DateTimeOffset.Now.ToUnixTimeSeconds();
+                long now = DateTimeOffset.Now.ToUnixTimeSeconds();
                 if (now - LastNanoLuz < NANO_LUZ_INTERVAL)
                 {
                     Console.WriteLine("⋰·⋰ = 🤫");
-                    return;
+                    return message);
                 }
 
                 LastNanoLuz = now;
