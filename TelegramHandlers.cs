@@ -61,7 +61,7 @@ namespace Tilapia
 
             Task<Message> action;
 
-            action = message.Text!.ToLowerInvariant().Normalize().Split(' ')[0].Split('@')[0] switch
+            action = message.Text!.ToLowerInvariant().Normalize().Split(' ', '@')[0] switch
             {
                 "/start" => Usage(botClient, message),
                 "/help" => Usage(botClient, message),
